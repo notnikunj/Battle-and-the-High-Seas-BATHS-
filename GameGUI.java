@@ -44,13 +44,18 @@ public class GameGUI
         // set panel layout and add components
         eastPanel.setLayout(new GridLayout(4,1));
 
+        eastPanel.add(viewBtn);
+        viewBtn.addActionListener(new ViewStateHandler());
+        
+        eastPanel.add(fightBtn);
+        fightBtn.addActionListener(new FightHandler());
+        
         eastPanel.add(clearBtn);
         clearBtn.addActionListener(new ClearHandler());
+        
         eastPanel.add(quitBtn);
-
-        clearBtn.setVisible(true);
-        quitBtn.setVisible(true);
-        // building is done - arrange the components and show        
+        quitBtn.addActionListener(new QuitHandler());
+        
         myFrame.pack();
         myFrame.setVisible(true);
     }
@@ -63,75 +68,58 @@ public class GameGUI
         JMenuBar menubar = new JMenuBar();
         frame.setJMenuBar(menubar);
         
-        // create the File menu
-        JMenu fileMenu = new JMenu("Ships");
-        menubar.add(fileMenu);
-        
-        JMenuItem listShipItem = new JMenuItem("List reserve Ships");
-        listShipItem.addActionListener(new ListFleetHandler());
-        fileMenu.add(listShipItem);
-        
-        JMenuItem decommission = new JMenuItem("De-ommission Ship");
-        decommission.addActionListener(new DecommissionHandler());
-        fileMenu.add(decommission);
-        
- 
-        
+        // Create the Ships menu
+        JMenu shipsMenu = new JMenu("Ships");
+        menubar.add(shipsMenu);        
     }
 
 
     
-    private class ListFleetHandler implements ActionListener
-    {
-        public void actionPerformed(ActionEvent e) 
-        { 
+
+    
+    private class ViewStateHandler implements ActionListener {
+        public void actionPerformed(ActionEvent e) {            
             listing.setVisible(true);
-            String xx = gp.getReserveFleet();
-            listing.setText(xx);
-            
+            // Using gp.toString() for state info; adjust if you have a dedicated getGameState() method.
+            String stateInfo = gp.toString();
+            listing.setText(stateInfo);
         }
     }
-
     
-    private class ClearHandler implements ActionListener
-    {
-        public void actionPerformed(ActionEvent e) 
-        { 
+    private class FightHandler implements ActionListener {
+        public void actionPerformed(ActionEvent e) {            
+            String input = JOptionPane.showInputDialog(myFrame, "Enter encounter number to fight:");
+            if (input != null && !input.trim().isEmpty()) {
+                try {
+                    int encNo = Integer.parseInt(input.trim());
+                    String result = gp.fightEncounter(encNo);
+                    JOptionPane.showMessageDialog(myFrame, result, "Fight Encounter", JOptionPane.INFORMATION_MESSAGE);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(myFrame, "Invalid encounter number.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+    
+    private class ClearHandler implements ActionListener {
+        public void actionPerformed(ActionEvent e) {            
             listing.setText("");
             listing.setVisible(false);            
         }
     }
-
-
     
-    private class DecommissionHandler implements ActionListener
-    {
-        public void actionPerformed(ActionEvent e) 
-        { 
-            String result = "";
-            String inputValue = JOptionPane.showInputDialog("Ship code ?: ");
-            
-            if(gp.isInSquadron(inputValue)) 
-            {
-                gp.decommissionShip(inputValue);
-                result = inputValue + " is decommissioned";
-            }
-            else
-            {
-                result = inputValue + " not in fleet";
-            }
-            JOptionPane.showMessageDialog(myFrame,result);    
+    private class QuitHandler implements ActionListener {
+        public void actionPerformed(ActionEvent e) {            
+            System.exit(0);
         }
     }
     
-   
-    private class ClearButtonHandler implements ActionListener
-    {
-        public void actionPerformed(ActionEvent e) 
-        {            
-            listing.setVisible(false);
-            clearBtn.setVisible(false);
-        }
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable(){
+            public void run() {
+                new GameGUI();
+            }
+        });
     }
     
 }
